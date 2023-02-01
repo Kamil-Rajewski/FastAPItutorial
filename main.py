@@ -1,10 +1,12 @@
 from fastapi import FastAPI
+from fastapi.params import Body
+from pydantic import BaseModel
 
 app = FastAPI()
 
 @app.get("/")
 def root():
-    return {"Hello": "Welcome to my API"}
+    return {"Hello": "he to madasdsadasdy API"}
 
 
 @app.get("/posts")
@@ -13,5 +15,6 @@ def get_posts():
 
 
 @app.post("/createposts")
-def create_posts():
-    return {"message": "succesfully created posts"}
+def create_posts(payLoad: dict = Body(...)):
+    print(payLoad)
+    return {"new_post": f"title {payLoad['title']} content: {payLoad['content']}"}
