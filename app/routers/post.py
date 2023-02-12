@@ -1,4 +1,4 @@
-from .. import models, schemas
+from .. import models, schemas, oath2
 from typing import Optional, List
 from fastapi import FastAPI, Response, status, HTTPException, Depends, APIRouter
 from sqlalchemy.orm import Session
@@ -11,7 +11,8 @@ router = APIRouter(
 
 
 @router.get("/", response_model=List[schemas.Post])
-def get_posts(db: Session = Depends(get_db)):
+def get_posts(db: Session = Depends(get_db),
+              user_id: int = Depends(oath2.get_current_user)):
     # cursor.execute("""Select * From posts """)
     # posts = cursor.fetchall()
     posts = db.query(models.Post).all()
@@ -19,12 +20,14 @@ def get_posts(db: Session = Depends(get_db)):
 
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post)
-def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
+def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db),
+                 user_id: int = Depends(oath2.get_current_user)):
     # cursor.execute("""INSERT INTO posts (title, content, published) VALUES (%s, %s, %s)  RETURNING *""",
     #                (post.title, post.content, post.published))
     # new_post = cursor.fetchone()
     # conn.commit()
     # **post.dict()
+    print(user_id)
     new_post = models.Post(**post.dict())
     db.add(new_post)
     db.commit()
@@ -33,7 +36,8 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
 
 
 @router.get("/{id}", response_model=schemas.Post)
-def get_post(id: int, db: Session = Depends(get_db)):
+def get_post(id: int, db: Session = Depends(get_db),
+             user_id: int = Depends(oath2.get_current_user)):
     # cursor.execute(""" Select * From posts where id = %s returning *""", (str(id),))
     # post = cursor.fetchone()
     post = db.query(models.Post).filter(models.Post.id == id).first()
@@ -45,7 +49,8 @@ def get_post(id: int, db: Session = Depends(get_db)):
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int, db: Session = Depends(get_db)):
+def delete_post(id: int, db: Session = Depends(get_db),
+                user_id: int = Depends(oath2.get_current_user)):
     # cursor.execute("""Delete from posts WHERE id = %s RETURNING *""", (str(id),))
     # deleted_post = cursor.fetchone()
     # conn.commit()
@@ -60,7 +65,8 @@ def delete_post(id: int, db: Session = Depends(get_db)):
 
 
 @router.put("/{id}", response_model=schemas.Post)
-def update_post(id: int, updated_post: schemas.PostUpdate, db: Session = Depends(get_db)):
+def update_post(id: int, updated_post: schemas.PostUpdate, db: Session = Depends(get_db),
+                user_id: int = Depends(oath2.get_current_user)):
     # cursor.execute(""" UPDATE posts SET title = %s, content = %s, published = %s
     # WHERE id = %s RETURNING *""", (post.title, post.content, post.published, str(id), ))
     # updated_post = cursor.fetchone()
